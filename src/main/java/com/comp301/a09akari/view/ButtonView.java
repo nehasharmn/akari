@@ -7,33 +7,33 @@ import javafx.scene.Parent;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.VBox;
 
-public class GridView implements FXComponent {
+
+public class ButtonView implements FXComponent {
     private final ClassicMvcController controller;
     private final Model model;
 
-    public GridView(ClassicMvcController controller, Model model) {
+    public ButtonView(ClassicMvcController controller, Model model) {
         this.controller = controller;
         this.model = model;
     }
 
     @Override
     public Parent render() {
-        HBox pane = new HBox(5);
+        VBox mainContainer = new VBox(10);
+        mainContainer.setStyle("-fx-alignment: center; -fx-padding: 10;");
 
-        pane.setStyle("-fx-padding: 20 0 0 0; " +
-                "-fx-spacing: 10; " +
-                "-fx-alignment: center;");
+        HBox buttonContainer = new HBox(10);
+        buttonContainer.setStyle("-fx-alignment: center;");
+        buttonContainer.getChildren().add(renderButtons());
 
-        pane.getChildren().clear();
-        pane.getChildren().add(renderButtons());
+        Label numofpuz = new Label((model.getPuzzleIndex() + 1) + "/" + model.getPuzzleLibrarySize());
+        numofpuz.setStyle("-fx-font-size: 14px; -fx-text-fill: black;");
 
+        mainContainer.getChildren().addAll(buttonContainer, numofpuz);
 
-        Label puzzleNum = new Label((model.getActivePuzzleIndex() + 1) + "/" + model.getPuzzleLibrarySize());
-        puzzleNum.setStyle("-fx-font-size: 14px; -fx-text-fill: black; -fx-padding: 10;");
-        pane.getChildren().add(puzzleNum);
-
-        return pane;
+        return mainContainer;
     }
 
 
@@ -42,7 +42,6 @@ public class GridView implements FXComponent {
 
         layout.setStyle("-fx-padding: 20 0 0 0;");
 
-        // Previous button
         Button prev = new Button("Previous");
         prev.setStyle("-fx-font-size: 16px; " +
                 "-fx-padding: 10 20; " +
@@ -53,7 +52,6 @@ public class GridView implements FXComponent {
         prev.setOnAction((ActionEvent event) -> controller.clickPrevPuzzle());
         layout.getChildren().add(prev);
 
-        // Next button
         Button next = new Button("Next");
         next.setStyle("-fx-font-size: 16px; " +
                 "-fx-padding: 10 20; " +
@@ -64,7 +62,6 @@ public class GridView implements FXComponent {
         next.setOnAction((ActionEvent event) -> controller.clickNextPuzzle());
         layout.getChildren().add(next);
 
-        // Random button
         Button rand = new Button("Random");
         rand.setStyle("-fx-font-size: 16px; " +
                 "-fx-padding: 10 20; " +
@@ -73,27 +70,26 @@ public class GridView implements FXComponent {
                 "-fx-background-radius: 5; " +
                 "-fx-cursor: hand;");
         rand.setOnAction((ActionEvent event) -> {
-            int before = model.getActivePuzzleIndex();
+            int b4 = model.getPuzzleIndex();
             controller.clickRandPuzzle();
-            int after = model.getActivePuzzleIndex();
-            while (before == after) {
-                before = model.getActivePuzzleIndex();
+            int after = model.getPuzzleIndex();
+            while (b4 == after) {
+                b4 = model.getPuzzleIndex();
                 controller.clickRandPuzzle();
-                after = model.getActivePuzzleIndex();
+                after = model.getPuzzleIndex();
             }
         });
         layout.getChildren().add(rand);
 
-        // Reset button
-        Button resetButton = new Button("Reset");
-        resetButton.setStyle("-fx-font-size: 16px; " +
+        Button reset = new Button("Reset");
+        reset.setStyle("-fx-font-size: 16px; " +
                 "-fx-padding: 10 20; " +
                 "-fx-background-color: #004e8c; " +
                 "-fx-text-fill: white; " +
                 "-fx-background-radius: 5; " +
                 "-fx-cursor: hand;");
-        resetButton.setOnAction((ActionEvent event) -> controller.clickResetPuzzle());
-        layout.getChildren().add(resetButton);
+        reset.setOnAction((ActionEvent event) -> controller.clickResetPuzzle());
+        layout.getChildren().add(reset);
 
         return layout;
     }

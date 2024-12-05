@@ -19,10 +19,10 @@ public class MessageView implements FXComponent {
     @Override
     public Parent render() {
         StackPane layout = new StackPane();
-        layout.setPrefSize(700, 700);
+        //layout.setPrefSize(700, 700);
 
         if (model.isSolved()) {
-            int puzzle = model.getActivePuzzleIndex() + 1;
+            int puzzle = model.getPuzzleIndex() + 1;
             Label instructions = new Label("YAY you solved the puzzle " + puzzle + "!");
 
             instructions.setStyle("-fx-font-size: 20px; " +

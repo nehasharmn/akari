@@ -24,30 +24,31 @@ public class PuzzleImpl implements Puzzle {
         }
     }
 
-        public CellType getCellType ( int r, int c){
-            if (r > board.length || c > board[0].length) {
-                throw new IndexOutOfBoundsException("index is out of bounds");
-            }
-            int boardVal = board[r][c];
-            if (boardVal <= 4) {
-                return CellType.CLUE;
-            } else if (boardVal == 5) {
-                return CellType.WALL;
-            } else {
-                return CellType.CORRIDOR;
-            }
+    public CellType getCellType(int r, int c) {
+        if (r > board.length || c > board[0].length) {
+            throw new IndexOutOfBoundsException("index is out of bounds");
         }
-        public int getClue ( int r, int c){
-            if (r > board.length || c > board[0].length) {
-                throw new IndexOutOfBoundsException("index is out bounds");
-            }
-            if (getCellType(r, c) != CellType.CLUE) {
-                throw new IllegalArgumentException("cell must be of type clue.");
-            }
-            return board[r][c];
+        int boardVal = board[r][c];
+        if (boardVal <= 4) {
+            return CellType.CLUE;
+        } else if (boardVal == 5) {
+            return CellType.WALL;
+        } else {
+            return CellType.CORRIDOR;
         }
-
     }
+
+    public int getClue(int r, int c) {
+        if (r > board.length || c > board[0].length) {
+            throw new IndexOutOfBoundsException("index is out bounds");
+        }
+        if (getCellType(r, c) != CellType.CLUE) {
+            throw new IllegalArgumentException("needs to be of type clue");
+        }
+        return board[r][c];
+    }
+
+}
 
 
 
