@@ -5,68 +5,69 @@ import java.util.List;
 
 public class ModelImpl implements Model {
     private final PuzzleLibrary library;
-    private int puzzleIndex;
-    private Puzzle thePuzzle;
-    private int[][] lampPlace;
-    List<ModelObserver> theObservers;
+    List<ModelObserver> activeObservers;
+    private int activePuzzleIndex;
+    private int[][] lampPlacements;
+    private Puzzle activePuzzle;
 
     public ModelImpl(PuzzleLibrary library) {
         if (library == null) {
             throw new IllegalArgumentException();
         }
-        theObservers = new ArrayList<>();
         this.library = library;
-        this.puzzleIndex = 0;
-        this.thePuzzle = library.getPuzzle(puzzleIndex);
-        lampPlace = new int[thePuzzle.getHeight()][thePuzzle.getWidth()];
+        this.activePuzzleIndex = 0;
+        this.activePuzzle = library.getPuzzle(activePuzzleIndex);
+        activeObservers = new ArrayList<>();
+        lampPlacements = new int[activePuzzle.getHeight()][activePuzzle.getWidth()];
         this.resetPuzzle();
     }
 
-    public void addLamp(int r, int c) {
-        checkIndexBounds(r, c, true);
-        if (!isLamp(r, c)) {
-            lampPlace[r][c] = 1;
-            notifyObservers();
-        }
-    }
-
-    public void removeLamp(int r, int c) {
-        checkIndexBounds(r, c, true);
-        if (lampPlace[r][c] == 0) {
-            throw new IllegalArgumentException("no lamp");
-        }
-        lampPlace[r][c] = 0;
-        notifyObservers();
-    }
 
     public boolean isLit(int r, int c) {
         checkIndexBounds(r, c, true);
         if (isLamp(r, c)) return true;
 
         for (int i = c - 1; i >= 0; i--) {
-            if (library.getPuzzle(puzzleIndex).getCellType(r, i) != CellType.CORRIDOR) break;
+            if (library.getPuzzle(activePuzzleIndex).getCellType(r, i) != CellType.CORRIDOR) break;
             if (isLamp(r, i)) return true;
         }
-        for (int i = c + 1; i < library.getPuzzle(puzzleIndex).getWidth(); i++) {
-            if (library.getPuzzle(puzzleIndex).getCellType(r, i) != CellType.CORRIDOR) break;
+        for (int i = c + 1; i < library.getPuzzle(activePuzzleIndex).getWidth(); i++) {
+            if (library.getPuzzle(activePuzzleIndex).getCellType(r, i) != CellType.CORRIDOR) break;
             if (isLamp(r, i)) return true;
         }
 
         for (int i = r - 1; i >= 0; i--) {
-            if (library.getPuzzle(puzzleIndex).getCellType(i, c) != CellType.CORRIDOR) break;
+            if (library.getPuzzle(activePuzzleIndex).getCellType(i, c) != CellType.CORRIDOR) break;
             if (isLamp(i, c)) return true;
         }
-        for (int i = r + 1; i < library.getPuzzle(puzzleIndex).getHeight(); i++) {
-            if (library.getPuzzle(puzzleIndex).getCellType(i, c) != CellType.CORRIDOR) break;
+        for (int i = r + 1; i < library.getPuzzle(activePuzzleIndex).getHeight(); i++) {
+            if (library.getPuzzle(activePuzzleIndex).getCellType(i, c) != CellType.CORRIDOR) break;
             if (isLamp(i, c)) return true;
         }
 
         return false;
     }
 
+    public void addLamp(int r, int c) {
+        checkIndexBounds(r, c, true);
+        if (!isLamp(r, c)) {
+            lampPlacements[r][c] = 1;
+            notifyObservers();
+        }
+    }
+
+    public void removeLamp(int r, int c) {
+        checkIndexBounds(r, c, true);
+        if (lampPlacements[r][c] == 0) {
+            throw new IllegalArgumentException("no lamp");
+        }
+        lampPlacements[r][c] = 0;
+        notifyObservers();
+    }
+
     public boolean isLamp(int r, int c) {
         checkIndexBounds(r, c, true);
-        return lampPlace[r][c] == 1;
+        return lampPlacements[r][c] == 1;
     }
 
     public boolean isLampIllegal(int r, int c) {
@@ -75,26 +76,26 @@ public class ModelImpl implements Model {
             throw new IllegalArgumentException();
         }
 
-        int width = thePuzzle.getWidth();
-        int height = thePuzzle.getHeight();
+        int width = activePuzzle.getWidth();
+        int height = activePuzzle.getHeight();
 
-        // the left
+        // left
         for (int i = c - 1; i >= 0; i--) {
             if (!isCorridor(r, i)) break;
             if (isLamp(r, i)) return true;
         }
-        // the right
+        // right
         for (int i = c + 1; i < width; i++) {
             if (!isCorridor(r, i)) break;
             if (isLamp(r, i)) return true;
         }
 
-        // this is for up
+        // up
         for (int i = r - 1; i >= 0; i--) {
             if (!isCorridor(i, c)) break;
             if (isLamp(i, c)) return true;
         }
-        // this is for down
+        // down
         for (int i = r + 1; i < height; i++) {
             if (!isCorridor(i, c)) break;
             if (isLamp(i, c)) return true;
@@ -104,23 +105,23 @@ public class ModelImpl implements Model {
     }
 
     private boolean isCorridor(int r, int c) {
-        return thePuzzle.getCellType(r, c) == CellType.CORRIDOR;
+        return activePuzzle.getCellType(r, c) == CellType.CORRIDOR;
     }
 
     public Puzzle getThePuzzle() {
-        return library.getPuzzle(puzzleIndex);
+        return library.getPuzzle(activePuzzleIndex);
     }
 
     public int getPuzzleIndex() {
-        return this.puzzleIndex;
+        return this.activePuzzleIndex;
     }
 
     public void setPuzzleIndex(int index) {
         if (index < 0 || index >= library.size()) {
             throw new IndexOutOfBoundsException();
         }
-        this.puzzleIndex = index;
-        thePuzzle = library.getPuzzle(puzzleIndex);
+        this.activePuzzleIndex = index;
+        activePuzzle = library.getPuzzle(activePuzzleIndex);
         resetPuzzle();
     }
 
@@ -129,29 +130,29 @@ public class ModelImpl implements Model {
     }
 
     public void resetPuzzle() {
-        lampPlace = new int[thePuzzle.getHeight()][thePuzzle.getWidth()];
+        lampPlacements = new int[activePuzzle.getHeight()][activePuzzle.getWidth()];
         notifyObservers();
     }
 
     public boolean isSolved() {
-        System.out.println("Checking if puzzle is solved");
-        for (int r = 0; r < thePuzzle.getHeight(); r++) {
-            for (int c = 0; c < thePuzzle.getWidth(); c++) {
-                CellType cellType = thePuzzle.getCellType(r, c);
+        System.out.println("Checking if puzzle is solved...");
+        for (int r = 0; r < activePuzzle.getHeight(); r++) {
+            for (int c = 0; c < activePuzzle.getWidth(); c++) {
+                CellType cellType = activePuzzle.getCellType(r, c);
                 switch (cellType) {
                     case CORRIDOR:
                         if (!isLit(r, c)) {
-                            System.out.println("Puzzle not solved");
+                            System.out.println("Puzzle not solved: Corridor at (" + r + ", " + c + ") is not lit.");
                             return false;
                         }
                         if (isLamp(r, c) && isLampIllegal(r, c)) {
-                            System.out.println("Puzzle not solved");
+                            System.out.println("Puzzle not solved: Illegal lamp at (" + r + ", " + c + ").");
                             return false;
                         }
                         break;
                     case CLUE:
                         if (!isClueSatisfied(r, c)) {
-                            System.out.println("Puzzle not solved");
+                            System.out.println("Puzzle not solved: Clue at (" + r + ", " + c + ") is not satisfied.");
                             return false;
                         }
                         break;
@@ -166,47 +167,47 @@ public class ModelImpl implements Model {
 
 
     public void addObserver(ModelObserver observer) {
-        theObservers.add(observer);
+        activeObservers.add(observer);
     }
 
     public void removeObserver(ModelObserver observer) {
-        theObservers.remove(observer);
+        activeObservers.remove(observer);
     }
 
     public boolean isClueSatisfied(int r, int c) {
         checkIndexBounds(r, c, false);
-        if (library.getPuzzle(puzzleIndex).getCellType(r, c) != CellType.CLUE) {
+        if (library.getPuzzle(activePuzzleIndex).getCellType(r, c) != CellType.CLUE) {
             throw new IllegalArgumentException();
         }
-        int requiredLamps = library.getPuzzle(puzzleIndex).getClue(r, c);
+        int maxLamps = library.getPuzzle(activePuzzleIndex).getClue(r, c);
 
         int surroundinglamps = 0;
 
-        if (r > 0 && lampPlace[r - 1][c] == 1) {
+        if (r > 0 && lampPlacements[r - 1][c] == 1) {
             surroundinglamps++;
         }
-        if (r < thePuzzle.getHeight() - 1 && lampPlace[r + 1][c] == 1) {
+        if (r < activePuzzle.getHeight() - 1 && lampPlacements[r + 1][c] == 1) {
             surroundinglamps++;
         }
-        if (c > 0 && lampPlace[r][c - 1] == 1) {
+        if (c > 0 && lampPlacements[r][c - 1] == 1) {
             surroundinglamps++;
         }
-        if (c < thePuzzle.getWidth() - 1 && lampPlace[r][c + 1] == 1) {
+        if (c < activePuzzle.getWidth() - 1 && lampPlacements[r][c + 1] == 1) {
             surroundinglamps++;
         }
 
-        return requiredLamps == surroundinglamps;
+        return maxLamps == surroundinglamps;
     }
 
     private void checkIndexBounds(int r, int c, boolean checkCorridor) {
-        if (r >= library.getPuzzle(puzzleIndex).getHeight()
-                || c >= library.getPuzzle(puzzleIndex).getWidth()
+        if (r >= library.getPuzzle(activePuzzleIndex).getHeight()
+                || c >= library.getPuzzle(activePuzzleIndex).getWidth()
                 || r < 0
                 || c < 0) {
             throw new IndexOutOfBoundsException();
         }
         if (checkCorridor) {
-            if (library.getPuzzle(puzzleIndex).getCellType(r, c) != CellType.CORRIDOR) {
+            if (library.getPuzzle(activePuzzleIndex).getCellType(r, c) != CellType.CORRIDOR) {
                 throw new IllegalArgumentException();
             }
         }
@@ -214,12 +215,10 @@ public class ModelImpl implements Model {
 
     private void notifyObservers() {
         System.out.println("Notifying observers");
-        for (ModelObserver o : theObservers) {
+        for (ModelObserver o : activeObservers) {
             o.update(this);
         }
     }
 
 }
-
-
 
